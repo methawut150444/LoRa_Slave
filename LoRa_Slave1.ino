@@ -1,25 +1,25 @@
 #include <LoRa.h>
-#include <Adafruit_ADS1X15.h>
-#include <PCF8574.h>
+#include <Adafruit_ADS1X15.h> //this testing has use the ADS1115 ADC expander
+#include <PCF8574.h> //this testing has use the PCF8574 I/O expander
+
 #include "Wire.h"
-#include "BH1750.h"
+#include "BH1750.h" //this testing has use the ambientLight sensor (BH1750)
 
 PCF8574 PCF(0x20);
 Adafruit_ADS1115 ads0;
 Adafruit_ADS1115 ads1;
 BH1750 lightSensor;
 
-// For connect LoRa module
-#define ss D0    //D0
-#define rst D1   //D1
-#define dio0 D2  //D2
+// custom pin connect to LoRa module 
+//#define ss D0    //D0
+//#define rst D1   //D1
+//#define dio0 D2  //D2
 
 // Define Node Address
 byte masterNode = 0xFF;     
 byte slaveNode1 = 0xBB;
 // byte slaveNode2 = 0xCC; 
 
-int count = 0;
 int data0 = 0;
 int data1 = 0;
 int data2 = 0;
@@ -40,8 +40,8 @@ void setup() {
   BH1750_setup();
 
   //if init succeeded!
-  PCF.digitalWrite(P4, 0);
-  PCF.digitalWrite(P5, 0);
+  PCF.digitalWrite(P4, 0); //this testing has use PCF8574 I/O expander pin P4 and P5 connect with LED
+  PCF.digitalWrite(P5, 0); //this testing has use PCF8574 I/O expander pin P4 and P5 connect with LED
 }
 
 //------------------------------------------------< Loop >
@@ -79,6 +79,9 @@ void onReceive(int packetSize) {
   
     String masterMsg = incoming;
     if(masterMsg == "req -> node1"){ 
+
+      //create data form and response to LoRa end-device (Master)
+      
       String dataForm = "";
       int16_t soilMoisture_val = SoilMoisture();
       float lux_val = lightSensor.readLightLevel();
@@ -93,7 +96,6 @@ void onReceive(int packetSize) {
       // dataForm += "}";
 
       sendMessage(dataForm, masterNode, slaveNode1);
-      //count = count + 1;
       delay(100);
     }
 
@@ -133,8 +135,7 @@ void LoRa_setup(){
 
 //------------------------------------------------< PCF8574 setup >
 void PCF8574_setup(){
-  //Active LOW (Pull down)
-  // address 0x20 (A0:0, A1:0, A2:0)
+  // address 0x20 (A0: 0 (GND), A1: 0 (GND), A2: 0 (GND))
 
   // PCF.pinMode(P0, OUTPUT);
   // PCF.pinMode(P1, OUTPUT);
@@ -150,8 +151,8 @@ void PCF8574_setup(){
 
 //------------------------------------------------< PCF8574 setup >
 void ADS1115_setup(){
-  ads0.begin(0x48); //GND
-  ads1.begin(0x49); //VCC
+  ads0.begin(0x48); // ADDR pin connect GND
+  ads1.begin(0x49); // ADDR pin connect VCC
 
   while(!ads0.begin(0x48)){
     Serial.println("Failed to initialize ADS0.");
